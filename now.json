@@ -1,0 +1,11 @@
+{
+  "name": "uptimerobot-integration",
+  "version": 2,
+  "builds": [{ "src": "src/index.js", "use": "@now/node" }],
+  "routes": [
+    {
+      "src": "/uihook",
+      "dest": "/src/index.js"
+    }
+  ]
+}

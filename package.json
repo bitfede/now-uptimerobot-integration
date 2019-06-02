@@ -1,0 +1,16 @@
+{
+  "name": "uptimerobot-integration",
+  "version": "1.0.0",
+  "description": "an integration of the uptimerobot service",
+  "main": "index.js",
+  "repository": "https://github.com/bitfede/now-uptimerobot-integration",
+  "author": "Federico De Faveri <fede@keenn.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "now dev -p 5005",
+    "d:prod": "now --target=production"
+  },
+  "dependencies": {
+    "@zeit/integration-utils": "^0.6.1"
+  }
+}
