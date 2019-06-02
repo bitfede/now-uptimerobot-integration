@@ -1,7 +1,7 @@
 //dependencies
 const { htm } = require("@zeit/integration-utils");
 
-const buildMonitorsSection = (monitorsData, projectAliases) => {
+const buildMonitorsSection = (monitorsData, projectAliases, newMonitor) => {
   let monitorsection, monitorsLi, monitorsCreate;
   if (!monitorsData) {
     monitorsection = htm`
@@ -24,15 +24,30 @@ const buildMonitorsSection = (monitorsData, projectAliases) => {
 
     if (projectAliases.aliases.length === 0) {
       monitorsCreate = htm`
-        <P>This project has no Aliases set, please create an alias to start monitoring it</P>
+        <P>This project has no Aliases set, please create an alias to continue</P>
       `
-    } else {
+    } else if (projectAliases.aliases.length > 0 && !newMonitor) {
       monitorsCreate = htm`
         <P>Pick an alias that you want to start monitoring</P>
-        <Select name="domaintouse">
+        <Select name="domaintouse" action="show-monitor-creation" >
           <Option value=${null} caption="Select Option" />
-          ${projectAliases.aliases.map( aliasItem => htm`<Option value=${aliasItem.alias} caption=${aliasItem.alias} action="show-monitor-creation" />`)}
+          ${projectAliases.aliases.map( aliasItem => htm`<Option value=${aliasItem.alias} caption=${aliasItem.alias} />`)}
         </Select>
+      `
+    } else {
+      //UI to create a new monitor
+      monitorsCreate = htm`
+      <Box >
+        <P><B>Domain selected</B></P>
+        <Input width="30vw" name="monitorDomain" value=${newMonitor} disabled />
+        <P><B>Insert a name for the monitor</B></P>
+        <Input name="monitorFriendlyName" placeholder="monitor name" />
+        <P><B>Insert URL to monitor (leave blank for homepage)</B></P>
+        <Box marginBottom="1rem" display="flex" flexDirection="row" alignItems="flex-end">
+          <P>${newMonitor}</P><Input name="monitorPath" placeholder="pathname" />
+        </Box>
+        <Button action="submit-new-monitor">Submit</Button>
+      </Box>
       `
     }
 
@@ -65,7 +80,7 @@ const buildMonitorsSection = (monitorsData, projectAliases) => {
 
 }
 
-const buildAuthSection = (userData, monitorsData, projectAliases) => {
+const buildAuthSection = (userData, monitorsData, projectAliases, newMonitor) => {
   let authsection;
   if (!userData) {
     authsection = htm`
@@ -96,15 +111,15 @@ const buildAuthSection = (userData, monitorsData, projectAliases) => {
       <P>To get an UptimeRobot <B>MAIN API KEY</B> click <Link href="https://uptimerobot.com/">here</Link></P>
     </FsFooter>
   </Fieldset>
-  ${buildMonitorsSection(monitorsData, projectAliases)}
+  ${buildMonitorsSection(monitorsData, projectAliases, newMonitor)}
   `
 }
 
 module.exports = ( {options} ) => {
   //options passed from index
-  const { userData, monitorsData, projectAliases } = options;
+  const { userData, monitorsData, projectAliases, newMonitor } = options;
 
   return htm`
-    ${buildAuthSection(userData, monitorsData, projectAliases)}
+    ${buildAuthSection(userData, monitorsData, projectAliases, newMonitor)}
   `;
 };

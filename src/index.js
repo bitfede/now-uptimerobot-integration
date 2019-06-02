@@ -20,7 +20,7 @@ module.exports = withUiHook( async ({ payload, zeitClient }) => {
   //extract useful vars from payload
   const { clientState, action, project } = payload;
   //variables definitions
-  let userData, monitorsData, nowProjectId, projectAliases;
+  let userData, monitorsData, nowProjectId, projectAliases, newMonitor;
 
   // ACTIONS -----------------------------------------------------
   if (action === 'submit-uptrobot-api-key') {
@@ -35,6 +35,13 @@ module.exports = withUiHook( async ({ payload, zeitClient }) => {
     userData = null;
   }
 
+  if (action === 'show-monitor-creation') {
+    newMonitor = clientState.domaintouse + '/'
+  }
+
+  if (action === 'submit-new-monitor') {
+    console.log("TODO make new monito>>", clientState)
+  }
 
   //regular view flow
   // check if user authenticated and set variables accordingly
@@ -47,18 +54,16 @@ module.exports = withUiHook( async ({ payload, zeitClient }) => {
     monitorsData = null;
   } else {
     monitorsData = await getMonitorsInfo(metadata, project);
-    console.log("MONDATA>>>", monitorsData)
     const apiUrlCli = `/v4/now/aliases?limit=10&projectId=${project.id}`
     projectAliases = await zeitClient.fetchAndThrow(apiUrlCli, {method: 'GET'});
-    console.log("RECEN DEPLOY>>>", projectAliases);
-
   }
 
   //pass all useful variables to the component to display
   const uptRobotOptions = {
     userData,
     monitorsData,
-    projectAliases
+    projectAliases,
+    newMonitor
   }
 
   return htm`
