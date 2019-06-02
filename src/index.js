@@ -29,6 +29,12 @@ module.exports = withUiHook( async ({ payload, zeitClient }) => {
     userData = await getUserInfo(metadata);
   }
 
+  if (payload.action === 'uptimerobot-logout') {
+    metadata.uptimeRobotApiKey = null;
+    await zeitClient.setMetadata(metadata);
+    userData = null;
+  }
+
 
   // check if user authenticated and set variables accordingly
   if (metadata.uptimeRobotApiKey) {
