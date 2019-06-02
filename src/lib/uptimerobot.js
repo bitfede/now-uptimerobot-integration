@@ -17,6 +17,25 @@ const getUserInfo = async (metadata) => {
   return json;
 }
 
+//get monitors list -------------------------------------------------
+//get information about monitors
+const getMonitorsInfo = async (metadata, project) => {
+  const searchString = project.id.substring(0,6)
+  const myparams = new URLSearchParams();
+  myparams.append('api_key', metadata.uptimeRobotApiKey);
+  myparams.append('search', searchString);
+  myparams.append('logs', '1');
+  myparams.append('response_times', '1');
+  const response = await fetch( `${API_BASE_URL}/getMonitors`, {
+    method: "POST",
+    body: myparams
+  })
+  const json = await response.json();
+
+  return json
+}
+
 module.exports = {
-  getUserInfo
+  getUserInfo,
+  getMonitorsInfo
 };

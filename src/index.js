@@ -11,16 +11,16 @@ const { withUiHook, htm } = require('@zeit/integration-utils');
 const { UptimeRobot } = require("./components");
 
 //Services
-const { getUserInfo } = require("./lib/uptimerobot");
+const { getUserInfo, getMonitorsInfo } = require("./lib/uptimerobot");
 
 module.exports = withUiHook( async ({ payload, zeitClient }) => {
   //get metadata info
   const metadata = await zeitClient.getMetadata();
   console.log("METADATA >>>", metadata); //DEBUG
   //extract useful vars from payload
-  const { clientState, action } = payload;
+  const { clientState, action, project } = payload;
   //variables definitions
-  let userData;
+  let userData, monitorsData, nowProjectId, projectAliases;
 
   // ACTIONS -----------------------------------------------------
   if (action === 'submit-uptrobot-api-key') {
@@ -29,21 +29,36 @@ module.exports = withUiHook( async ({ payload, zeitClient }) => {
     userData = await getUserInfo(metadata);
   }
 
-  if (payload.action === 'uptimerobot-logout') {
+  if (action === 'uptimerobot-logout') {
     metadata.uptimeRobotApiKey = null;
     await zeitClient.setMetadata(metadata);
     userData = null;
   }
 
 
+  //regular view flow
   // check if user authenticated and set variables accordingly
   if (metadata.uptimeRobotApiKey) {
      userData = await getUserInfo(metadata);
   }
 
+  //check if project is selected
+  if (!project) {
+    monitorsData = null;
+  } else {
+    monitorsData = await getMonitorsInfo(metadata, project);
+    console.log("MONDATA>>>", monitorsData)
+    const apiUrlCli = `/v4/now/aliases?limit=10&projectId=${project.id}`
+    projectAliases = await zeitClient.fetchAndThrow(apiUrlCli, {method: 'GET'});
+    console.log("RECEN DEPLOY>>>", projectAliases);
+
+  }
+
   //pass all useful variables to the component to display
   const uptRobotOptions = {
-    userData
+    userData,
+    monitorsData,
+    projectAliases
   }
 
   return htm`
