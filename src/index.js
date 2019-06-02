@@ -10,16 +10,30 @@ const { withUiHook, htm } = require('@zeit/integration-utils');
 //UI components
 const { UptimeRobot } = require("./components");
 
+//Services
+const { getUserInfo } = require("./lib/uptimerobot");
+
 module.exports = withUiHook( async ({ payload, zeitClient }) => {
   //get metadata info
   const metadata = await zeitClient.getMetadata();
   console.log("METADATA >>>", metadata); //DEBUG
+  //extract useful vars from payload
+  const { clientState, action } = payload;
   //variables definitions
   let userData;
 
   // ACTIONS -----------------------------------------------------
+  if (action === 'submit-uptrobot-api-key') {
+    metadata.uptimeRobotApiKey = clientState.UptRobApiKey;
+    await zeitClient.setMetadata(metadata);
+    userData = await getUserInfo(metadata);
+  }
 
 
+  // check if user authenticated and set variables accordingly
+  if (metadata.uptimeRobotApiKey) {
+     userData = await getUserInfo(metadata);
+  }
 
   //pass all useful variables to the component to display
   const uptRobotOptions = {
