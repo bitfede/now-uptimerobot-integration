@@ -11,16 +11,16 @@ const { withUiHook, htm } = require('@zeit/integration-utils');
 const { UptimeRobot } = require("./components");
 
 //Services
-const { getUserInfo, getMonitorsInfo } = require("./lib/uptimerobot");
+const { getUserInfo, getMonitorsInfo, createNewMonitor, deleteMonitor } = require("./lib/uptimerobot");
 
 module.exports = withUiHook( async ({ payload, zeitClient }) => {
   //get metadata info
   const metadata = await zeitClient.getMetadata();
-  console.log("METADATA >>>", metadata); //DEBUG
+  console.log("[*] Metadata: ", metadata); //DEBUG
   //extract useful vars from payload
   const { clientState, action, project } = payload;
   //variables definitions
-  let userData, monitorsData, nowProjectId, projectAliases, newMonitor;
+  let userData, monitorsData, nowProjectId, projectAliases, newMonitor, monitorCreated, monitorDeleted;
 
   // ACTIONS -----------------------------------------------------
   if (action === 'submit-uptrobot-api-key') {
@@ -36,11 +36,25 @@ module.exports = withUiHook( async ({ payload, zeitClient }) => {
   }
 
   if (action === 'show-monitor-creation') {
-    newMonitor = clientState.domaintouse + '/'
+    newMonitor = clientState.domaintouse + '/';
   }
 
   if (action === 'submit-new-monitor') {
-    console.log("TODO make new monito>>", clientState)
+    if (!clientState.monitorPath) { clientState.monitorPath = "" }
+    let monitorCreated, monitorName, urlToMonitor, monitorType, monitorInterval;
+    monitorName = `[${project.name}] ${clientState.monitorFriendlyName}`;
+    urlToMonitor = `https://${clientState.monitorDomain}${clientState.monitorPath}`;
+    monitorType = "1";
+    monitorInterval = "900";
+    monitorCreated = await createNewMonitor(metadata, monitorName, urlToMonitor, monitorType, monitorInterval);
+    console.log("[+] Monitor Creation: ", monitorCreated);
+
+  }
+
+  if (action === 'delete-monitor') {
+    let monitorToDelete = clientState.monitorToDelete;
+    monitorDeleted = await deleteMonitor(metadata, monitorToDelete)
+    console.log("[-] Monitor Deletion: ", monitorDeleted);
   }
 
   //regular view flow
@@ -54,6 +68,7 @@ module.exports = withUiHook( async ({ payload, zeitClient }) => {
     monitorsData = null;
   } else {
     monitorsData = await getMonitorsInfo(metadata, project);
+    console.log("[*] Monitor Data: ", monitorsData.monitors);
     const apiUrlCli = `/v4/now/aliases?limit=10&projectId=${project.id}`
     projectAliases = await zeitClient.fetchAndThrow(apiUrlCli, {method: 'GET'});
   }
@@ -65,7 +80,6 @@ module.exports = withUiHook( async ({ payload, zeitClient }) => {
     projectAliases,
     newMonitor
   }
-
   return htm`
     <Page>
       <Box display="flex" justifyContent="center" margin-bottom="1.5rem" margin-top="1.5rem" >

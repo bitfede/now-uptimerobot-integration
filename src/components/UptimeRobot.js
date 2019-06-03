@@ -2,7 +2,7 @@
 const { htm } = require("@zeit/integration-utils");
 
 const buildMonitorsSection = (monitorsData, projectAliases, newMonitor) => {
-  let monitorsection, monitorsLi, monitorsCreate;
+  let monitorsection, monitorsLi, monitorsCreate, monitorsDelete;
   if (!monitorsData) {
     monitorsection = htm`
       <Box>
@@ -14,11 +14,40 @@ const buildMonitorsSection = (monitorsData, projectAliases, newMonitor) => {
     //check if we have a list of monitors
     if (monitorsData.monitors.length === 0) {
       monitorsLi = htm`<P>There are no monitors for this project</P>`
+      monitorsDelete = htm`<P>There are no monitors to delete</P>`
+
     } else {
+      const formatStatus = (status) => {
+        if (status === 2) {
+          return "UP ✅"
+        } else if (status === 9 || status === 8) {
+          return "DOWN ⛔️"
+        }
+      }
       monitorsLi = htm`
-        <UL>
-          ${monitorsData.monitors.map( monitor => htm`<LI>[${monitor.id}] ${monitor.friendly_name}</LI>`)}
+        <UL listStyle="none">
+          ${monitorsData.monitors.map( (monitor) => {
+            return htm`
+            <LI>
+              <Box display="flex" flexDirection="row" justifyContent="space-around" alignItems="baseline" border="1px lightgray solid" borderRadius="20px">
+                <P><B>Id:</B>${monitor.id}</P>
+                <P><B>Name:</B>${monitor.friendly_name}</P>
+                <P><B>Status:</B>${formatStatus(monitor.status)}</P>
+                <P><B>Avg. Response Time:</B>${parseInt(monitor.average_response_time)}ms</P>
+              </Box>
+            </LI>
+            `
+
+          })}
         </UL>
+      `
+      monitorsDelete = htm`
+      <P>Pick the monitor that you want to delete</P>
+      <Select name="monitorToDelete" >
+        <Option value=${null} caption="Select Option" />
+        ${monitorsData.monitors.map( monitor => htm`<Option value=${monitor.id} caption=${monitor.friendly_name} />`)}
+      </Select>
+      <Button action="delete-monitor">Delete it </Button>
       `
     }
 
@@ -65,6 +94,10 @@ const buildMonitorsSection = (monitorsData, projectAliases, newMonitor) => {
           <H2>Create New</H2>
           ${monitorsCreate}
         </Box>
+        <Box marginTop="1.3rem">
+          <H2>Delete Existing</H2>
+          ${monitorsDelete}
+        </Box>
       </Box>
     `
   }
@@ -74,7 +107,9 @@ const buildMonitorsSection = (monitorsData, projectAliases, newMonitor) => {
       <FsContent>
       ${monitorsection}
       </FsContent>
-
+      <FsFooter>
+        <P>For more advanced functionalities and settings, go to the UptimeRobot <Link target="_blank" href="https://uptimerobot.com/dashboard">dashboard</Link> or you are welcome to <Link target="_blank" href="https://github.com/bitfede/now-uptimerobot-integration">contribute</Link></P>
+      </FsFooter>
     </Fieldset>
   `
 
