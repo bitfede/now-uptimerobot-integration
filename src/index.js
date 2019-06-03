@@ -64,13 +64,13 @@ module.exports = withUiHook( async ({ payload, zeitClient }) => {
   }
 
   //check if project is selected
-  if (!project) {
-    monitorsData = null;
-  } else {
+  if (project && metadata.uptimeRobotApiKey) {
     monitorsData = await getMonitorsInfo(metadata, project);
     console.log("[*] Monitor Data: ", monitorsData.monitors);
     const apiUrlCli = `/v4/now/aliases?limit=10&projectId=${project.id}`
     projectAliases = await zeitClient.fetchAndThrow(apiUrlCli, {method: 'GET'});
+  } else {
+    monitorsData = null;
   }
 
   //pass all useful variables to the component to display

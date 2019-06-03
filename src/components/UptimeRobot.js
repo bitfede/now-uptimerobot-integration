@@ -1,9 +1,16 @@
 //dependencies
 const { htm } = require("@zeit/integration-utils");
 
-const buildMonitorsSection = (monitorsData, projectAliases, newMonitor) => {
+const buildMonitorsSection = (userData, monitorsData, projectAliases, newMonitor) => {
   let monitorsection, monitorsLi, monitorsCreate, monitorsDelete;
-  if (!monitorsData) {
+
+  if (!userData) {
+    monitorsection = htm`
+    <Box>
+      <P>Please authenticate to continue</P>
+    </Box>
+    `
+  } else if (!monitorsData) {
     monitorsection = htm`
       <Box>
         <H2>Please pick a project to continue</H2>
@@ -146,7 +153,7 @@ const buildAuthSection = (userData, monitorsData, projectAliases, newMonitor) =>
       <P>To get an UptimeRobot <B>MAIN API KEY</B> click <Link href="https://uptimerobot.com/">here</Link></P>
     </FsFooter>
   </Fieldset>
-  ${buildMonitorsSection(monitorsData, projectAliases, newMonitor)}
+  ${buildMonitorsSection(userData, monitorsData, projectAliases, newMonitor)}
   `
 }
 
